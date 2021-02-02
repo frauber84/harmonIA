@@ -1,2 +1,2 @@
 # harmonIA
-Visualização interativa de sequências cordais modeladas por RNNs
+Visualização interativa de sequências cordais modeladas por RNNs (word-rnn)
