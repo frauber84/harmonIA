@@ -1,60 +1,9 @@
-'''
-https://www.it-swarm.dev/pt/python/como-posso-criar-o-executavel-de-tamanho-minimo-com-o-pyinstaller/836355070/
-
-O QUE PRECISA PARA UM RELEASE?
-
-
-
-# criar blobs sqlite3 para 20k de imagens de acordes...
-
-# nas versões normalizadas dos datasets, corrigir enarmonia  (Ab#, Bb#, Cb#, Db#, Eb#, Fb#, Gb# para começar )
-# a mesma coisa nas versões expandidas...
-
-
-
-# modelo sem CLOUD, FALHAR MAIS graciosamente...
-
-    
-# Tonalidades
-# Artistas 12 tons (melhor que normalizar)
-
-
-# C/Bb não encontrado no dicionario , vira C_Bb ?
-# Importante:
-
-# MIDI: Tocar acordes precisa usar cifras_helper para achar um equivalente
-# quando não há key para a entrada
-
-# ver realbook.py e como usar
-
-
-# Menor:
-# transposição: cria acordes estranhos, tipo chicobuarque, Eb#m7
-# stats: conferir se # e outros símbolos são agrupados corretamente   # menor
-# stats: número de músicas por tom (OK, precisa ser salvo antes de expansão)   # talvez desistir...
-# Cm em stats.py mostra inconsistências na detecção de permutações..
-
-
-# stats.py = somar as frequências dos acordes para ter % correta [ fica para depois]
-# SOLUÇÃO: SIMPLESMENTE REMOVER ESTAS ESTATÍSTICIAS
-
-
-
-PARA MAIS ADIANTE
-
-# modelos: explorar redundância (número de repetições diferentes)
-# IDEIA: deletar "frases repetidas" de 4 a 8 compassos para evitar bais estatístico e buscar mais diversidade de
-# progressões
-
-
- tag _END_ : agrupar por similaridade de tonalidades [já estou experimentando, não sei se faz muita diferença ] 
-
-# modelo realbook: terminar o processamento, esse é interessante     
-  
-'''
+# -------------------------------------------------------------------------------- #
+# harmonia v1.0 - Fernando Rauber --> fernandorauber.com.br/hia
+# Licença: MIT
 
 print ("[ HarmonIA v1.0 ]\n")
-print ("Carregando TensorFlow ...") # pq tão lento, Google???
+print ("Carregando TensorFlow ...") # pq tão lento, Google?
 import numpy as np
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # sem erros
@@ -87,13 +36,12 @@ from pathlib import Path
     
 # -------------------------------------------------------------------------------- #
 # Variáveis Globais 
-logVerboso = 1 # logar erros e execução
-#logVerboso = 0
+logVerboso = 0 # logar erros e execução
 myEVT_MODELO = wx.NewEventType()
 EVT_MODELO = wx.PyEventBinder(myEVT_MODELO, 1)
 EscolhaAcorde = threading.Event()
 frame1 = None
-Escolha = 'C'  # acorde
+Escolha = 'C'  # acorde inicial
 NumProb = 9   # número de possibilidades exibidas 
 threadErrors = [] # lista de EXCEÇÕES causadas pelas worker threads
 MAX_ACORDES = 32 # número de acordes criados
@@ -103,7 +51,6 @@ MAX_ACORDES = 32 # número de acordes criados
 
 def log(log):    
     if logVerboso ==1:            
-        #os.chdir(r"C:\fernando\2018\python\CIFRACLUB")
         if os.path.exists("log_erros.txt") == False:                
             f = open("log_erros.txt", "w", encoding="utf8")
             f.write(str(datetime.datetime.now()) )
@@ -126,7 +73,7 @@ class ModeloThread(threading.Thread):
         self._sample = 1   # sample each timestep 
         self.count = 1  # número de progressões
         self.pick = 1  # weighted ou beam, antigo
-        self.width = 4  # width to beam search
+        self.width = 4  # width do beam search
         self.quiet = False  # não-verboso
 
     def run(self): # acionado por thread.start()                
@@ -220,7 +167,7 @@ class Model():
         optimizer = tf.train.AdamOptimizer(self.lr)
         self.train_op = optimizer.apply_gradients(zip(grads, tvars))
 
-    def sample(self, sess, words, vocab, savedir, num=200, prime='C ', sampling_type=1, pick=0, width=4, quiet=False, criatividade=70, desenha=0, out='cifras.txt'):
+    def sample(self, sess, words, vocab, savedir, num=200, prime='C ', sampling_type=1, pick=0, width=4, quiet=False, criatividade=70, desenha=0, out=''):
         ret = ''
         if pick == 1:
             state = sess.run(self.cell.zero_state(1, tf.float32))
@@ -241,7 +188,7 @@ class Model():
                 feed = {self.input_data: x, self.initial_state:state}
                 [probs, state] = sess.run([self.probs, self.final_state], feed)
                                     
-                print("Modelo #" + str(self.num_id) + " --> " + str(savedir) )
+                # print("Modelo #" + str(self.num_id) + " --> " + str(savedir) )
                  
                 idx = 0
                 MatrizProb = [[0 for x in range(2)] for y in range(len(words))]  
@@ -254,35 +201,29 @@ class Model():
                 if NumProb > len(words):
                     NumProb = len(words)                                    
                     
-                # envia dados para outra thread e espera evento
-                
-                # filtra envio de mensagens Fechar para não criar texto                                
+                # envia dados para outra thread e espera evento                                
                 ultima = progressao.split()[-1]
                 if ultima == 'Fechar0' or ultima == 'FecharTodos' or ultima =='Fechar1':
                     progressao = progressao[:-len(ultima)-1]
-                    print(progressao)
+                    # print(progressao)
                 
                 # comunicação com a outra thread por pubsub
                 pub.sendMessage("listener", num_prob=NumProb, MatrizProb=MatrizProb, words=words, progressao=progressao, num_id = self.num_id)
                 
-                log('thread # ' + str(self.num_id) + ' savedir = ' + str(savedir) + '  esperando escolha')
+                #log('thread # ' + str(self.num_id) + ' savedir = ' + str(savedir) + '  esperando escolha')
                 EscolhaAcorde.wait() # espera a escolha de um novo acorde
-                print('Escolha Recebida:' + str(Escolha) )                
+                # print('Escolha Recebida:' + str(Escolha) )                
                 if not Escolha == 'Fechar0':  # sair do programa                    
                     while Escolha == 'Atualizar': # redesenhar interface
-                        
-                        #testar while escolha =='atualizar' or fechar1
                         
                         EscolhaAcorde.clear()
                         if NumProb > len(words):
                             NumProb = len(words)                    
 
                         # filtra mensagens de Fechar
-                        print(progressao)
                         ultima = progressao.split()[-1]
                         if ultima == 'Fechar0':
                             progressao = progressao[:-len(ultima)-1]
-                            print(progressao)
 
                         pub.sendMessage("listener", num_prob=NumProb, MatrizProb=MatrizProb, words=words, progressao=progressao, num_id = self.num_id)
                         EscolhaAcorde.wait()
@@ -291,7 +232,7 @@ class Model():
                         acorde = Escolha  # acorde escolhido
                         ret += " " + acorde  # conta        # retorno para formação de arquivo .txt (pré-formatação)
                         progressao += " " + acorde   # label para display no GUI                
-            print("modelo fechando #" + str(self.num_id) )
+            # print("modelo fechando #" + str(self.num_id) )
         return ret        
 
 class ModeloEvent(wx.PyCommandEvent):    # enviado ao término do processo
@@ -326,7 +267,7 @@ class AcordeDialog(wx.Dialog):
     def onChar(self, event): 
         key = event.GetKeyCode()   
         if self.PermitirEspaco: # para criação de nova sequência
-            if (self.input.GetValue().count(' ')) < 4:  # max 4 acordes
+            if (self.input.GetValue().count(' ')) < 6:  # max 6 acordes
                 acceptable_characters = "12345679()abcdefgABCDEFG#+-mMo/i " + "\b"
             else:
                 acceptable_characters = "\b"
@@ -353,7 +294,7 @@ class Panel1(wx.Panel):
                     notas = dic_acordes.Acordes[acorde]
                     MIDI.TocarAcorde(notas, 0.026, 0, True, self.InstrumentoMIDI)
                 except:
-                    print("Acorde não encontrado no dicionário = " + acorde)                    
+                    #print("Acorde não encontrado no dicionário = " + acorde)                    
                     pass
                  
         #pegar acorde e Mudar acorde
@@ -379,20 +320,19 @@ class Panel1(wx.Panel):
         #Tocar acorde
         if self.Escutar == True:
             acorde = event.GetEventObject().acordeMIDI
-            print(acorde)
+            #print(acorde)
             
             if not "nulo" in acorde: 
                 try:
                     notas = dic_acordes.Acordes[acorde]
                     MIDI.TocarAcorde(notas, 0.026, 0, True, self.InstrumentoMIDI)
                 except:
-                    print("Acorde não encontrado no dicionário = " + acorde)
+                    #print("Acorde não encontrado no dicionário = " + acorde)
                     pass
                  
         # Rota entre posições alternativas
         elif self.Escutar == False:                             
                 ac = event.GetEventObject()                
-                print("ac= " + str(ac))
                 ac.pos += 1 
                 acorde = ac.acorde.replace("/", "_") # acordes2xml.py --> troca caráter inválido
                 # TODO: Verificar dinamicamente até quando existe
@@ -466,9 +406,7 @@ class Panel1(wx.Panel):
                     acordes[ac.idx] = ac.acorde
                     self.LabelProgressao.SetLabel( ' '.join(acordes) )
                     self.ReposicionaAcordes(self)
-                    # reinicia com novo modelo, infelizmente não existe outra maneira                    
-                    # ALTERNATIVA: mudar a estrutura que alimenta o estado para achar uma
-                    # maneira de fazer isso sem ter que recarregar o modelo                                    
+                    # reinicia com novo modelo 
                     self.Prime = self.LabelProgressao.GetLabel()
                     self.Busy(self)
                     self.MudarModelo(event)
@@ -784,10 +722,10 @@ class Panel1(wx.Panel):
                 self.txt1.Enable(False)
                 self.stats.Enable(False)            
                 
-                print("savedir1")
-                print(dlg.savedir1)
-                print("savedir2")
-                print(dlg.savedir2)
+                #print("savedir1")
+                #print(dlg.savedir1)
+                #print("savedir2")
+                #print(dlg.savedir2)
                 
                 self.SaveDir = dlg.savedir1
                 self.SaveDir2 = dlg.savedir2
@@ -925,7 +863,7 @@ class Panel1(wx.Panel):
             if self.MultiModelo ==1:            
                 # pega pelos labels do modelo e cria as duas threads
                 worker = ModeloThread(self, 1, 0, self.nome_modelo1.GetLabel(), self.Prime)
-                print(self.nome_modelo1.GetLabel() )
+                #print(self.nome_modelo1.GetLabel() )
                 worker.start()            
                 
                 modelo2 = ModeloThread(self, 1, 1, self.nome_modelo2.GetLabel(), self.Prime)
@@ -950,7 +888,7 @@ class Panel1(wx.Panel):
                     r = random.randint(0, NumProb-1)                
                     i = 0
                     
-                    log('escolha aleatoria r = ' + str(r) )
+                    #log('escolha aleatoria r = ' + str(r) )
                     
                     for obj in self.GetChildren():            
                         if type(obj) == wx._core.Button:                            
@@ -959,7 +897,7 @@ class Panel1(wx.Panel):
                                     Escolha = obj.acorde
                                     EscolhaAcorde.set()                                    
                                     MIDI.TocarAcorde(dic_acordes.Acordes[obj.acorde], 0.026, 0, True, self.InstrumentoMIDI)
-                                    log('escolha aleatoria = ' + str(obj.acorde) )
+                                    #log('escolha aleatoria = ' + str(obj.acorde) )
                                     break                                
                                 except:
                                     pass
@@ -970,7 +908,7 @@ class Panel1(wx.Panel):
         escolha = botao.escolha
         
         if not "nulo" in event.GetEventObject().acorde:   # ignora marcadores |X|        
-            print(escolha)
+            #print(escolha)
                     
             if not wx.IsBusy():    
                 if not self.Escutar:     
@@ -990,7 +928,7 @@ class Panel1(wx.Panel):
                     #print(str(acorde) + ": ", end ='')
                     #xprint(MIDI.NotasDoAcorde(dic_acordes.Acordes[acorde]))
                 except:
-                    print("acorde não encontrado em dic_acordes.py: " + acorde)
+                    #print("acorde não encontrado em dic_acordes.py: " + acorde)
                     log("acorde não encontrado em dic_acordes.py: " + acorde)
         else:
             print("escolha nula")
@@ -998,13 +936,13 @@ class Panel1(wx.Panel):
     def CriaAlternativas(self, num_prob, MatrizProb, words, progressao, num_id):
         widthTela, heightTela = wx.GetDisplaySize()
         
-        log('cria alternativas, num_id = ' + str(num_id) + ' multimodelo= ' + str(self.MultiModelo) )
+        #log('cria alternativas, num_id = ' + str(num_id) + ' multimodelo= ' + str(self.MultiModelo) )
         
         # chamo isso aqui na CriaAlternativas e em ReposicionarBotoes pois às vezes a ordem de
         # execução das threads impede que a interface seja liberada na hora correta...
         if wx.IsBusy():
             self.NotBusy(self)
-            log('CriaAlternativas() dispara self.NotBusy(self)' )
+            #log('CriaAlternativas() dispara self.NotBusy(self)' )
             
         if self.MultiModelo==1:
             
@@ -1038,7 +976,7 @@ class Panel1(wx.Panel):
                         ip += 1
                     
                     ''' TO DO:                         
-                        SE APÓSA COMPENSAÇÃO ALGUM DOS BOTÕES FFICAR COM ÁREA
+                        SE APÓS A COMPENSAÇÃO ALGUM DOS BOTÕES FFICAR COM ÁREA
                         MENOR QUE 1000, resetar e aumentar o número de divisões, etc..
                     '''
                     
@@ -1078,7 +1016,8 @@ class Panel1(wx.Panel):
                     self.ReposicionaAcordes(self)
                     self.ReposicionaAcordesPNG(self)
                 except:
-                    log('erro com a função reposiciona botoes ou acordes (Modelo #0)')
+                    #log('erro com a função reposiciona botoes ou acordes (Modelo #0)')
+                    pass
                 
             #MODELO 2
             elif num_id == 1:    
@@ -1090,7 +1029,7 @@ class Panel1(wx.Panel):
                 
                 # prepara TreeMaps
                 for idx in range(num_prob):
-                    #oba: isso não existe nos datasets mais recentes, excluir com cuidado
+                    # isso não existe nos datasets mais recentes, excluir com cuidado
                     if not "|X" in words[MatrizProb[idx][0]]: 
                         acordes.append( words[MatrizProb[idx][0]] )    
                         prob.append( MatrizProb[idx][1] )
@@ -1144,7 +1083,8 @@ class Panel1(wx.Panel):
                     self.ReposicionaAcordes(self)
                     self.ReposicionaAcordesPNG(self)
                 except:
-                    log('erro com a função reposiciona botoes ou acordes (Modelo #1)')
+                    #log('erro com a função reposiciona botoes ou acordes (Modelo #1)')
+                    pass
 
             
         elif self.MultiModelo==0:
@@ -1222,7 +1162,8 @@ class Panel1(wx.Panel):
                 self.ReposicionaAcordes(self)
                 self.ReposicionaAcordesPNG(self)
             except:
-                log('erro com a função reposiciona botoes ou acordes. SaveDir = ' + self.SaveDir)
+                #log('erro com a função reposiciona botoes ou acordes. SaveDir = ' + self.SaveDir)
+                pass
                 
                 # mostra msg inicial na primeira vez que a interface for desenhada        
         if self.ajudaInicial:            
@@ -1235,7 +1176,7 @@ class Panel1(wx.Panel):
         
         if wx.IsBusy():
             self.NotBusy(self)
-            log('ReposicionaBotoes() dispara self.NotBusy(self)' )
+            #log('ReposicionaBotoes() dispara self.NotBusy(self)' )
         self.Freeze()
         i = 0
         for b in botoes:
@@ -1387,7 +1328,7 @@ class Panel1(wx.Panel):
                 
                 mscore = Path("/Program Files/MuseScore 3/bin/MuseScore3.exe")   # instalação padrão no Windows
                 if mscore.is_file():
-                    print("MuseScore 3 encontrado")
+                    #print("MuseScore 3 encontrado")
                     subprocess.Popen(str(mscore) + " " + path)   
                 else:
                     print("MuseScore 3 não encontrado em /Program Files/MuseScore 3/bin/MuseScore3.exe")
@@ -1468,7 +1409,7 @@ class Panel1(wx.Panel):
         self.SetBackgroundColour( (255,255,255) )
         
         widthTela, heightTela = wx.GetDisplaySize()
-        print("Resolução: " + str(widthTela)+"x"+str(heightTela))
+        #print("Resolução: " + str(widthTela)+"x"+str(heightTela))
         
         # ComboBox modelo
         FonteMaior = wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.NORMAL)         
@@ -1545,7 +1486,7 @@ class Panel1(wx.Panel):
         # Botões laterais
         
         botY = int(round( (heightTela-20) / 9) )  # divide espaço para os botoes e aredonda
-        print("heightbotoes = " + str(botY) )
+        #print("heightbotoes = " + str(botY) )
         
         y = 10 # offset y
         self.Mais = wx.BitmapButton(self, id=wx.ID_ANY, bitmap=self.img1,size=(96,botY), pos=(5, y+botY*0) )
