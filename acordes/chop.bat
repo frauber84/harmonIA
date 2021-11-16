@@ -1,0 +1,1 @@
+FOR %%i IN (*.png) DO magick convert %%i -chop 0x199 %%i_top.png  && magick convert %%i_top.png -chop 142x0 %%i_esq.png  && magick convert %%i_esq.png -gravity East -chop 2630x0 %%i_dir.png && magick convert %%i_dir.png -gravity South -chop 0x3680 %%i_final.png && del %%i_top.png && del %%i_dir.png && del %%i_esq.png && del %%i
