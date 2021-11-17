@@ -170,7 +170,7 @@ def train(args):
     t2 = time.time() - t1
     info = open( os.path.join(args.save_dir,"info"), "w", encoding="utf8")    
     info.write('\nnome: ' + str(args.save_dir) )
-    info.write('\rnn-size:' + str(args.rnn_size) )
+    info.write('\nrnn-size:' + str(args.rnn_size) )
     info.write('\nacordes:' + str(args.vocab_size) )
     info.write('\nepocas:' + str(args.num_epochs) )
     info.write('\ntempo:' + str(t2) )
