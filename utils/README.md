@@ -6,7 +6,9 @@ cifras_helper_batch.py - limpa os dados brutos e uniformiza as cifras
 
 compila_acordes2020.py - cria dicionário de acordes (dic_acordes.py)
 
-batch_train_2021.py - treina modelos e organiza informações
+train.py - treina modelos
+
+batch_train_2021.py - aciona train.py e organiza informações sobre o modelo
 
 expande_e_normaliza_batch.py - expansão (para 12 tons) e normalização (para dó maior) dos dados brutos
 
