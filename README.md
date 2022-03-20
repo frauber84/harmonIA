@@ -8,3 +8,6 @@ https://fernandorauber.com.br/hia/data/
 
 Download (Windows):
 https://fernandorauber.com.br/hia/harmonia-latest.zip
+
+
+Iniciado como um fork de https://github.com/hunkim/word-rnn-tensorflow
