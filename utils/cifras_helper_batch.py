@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
 
-'''  TO DO:
-    
-finalizar inversões
- 
- '''
 import os
 import codecs
 from pathlib import Path
@@ -1036,11 +1031,9 @@ def UniformizaCifraNewline(x):
     return x
 
 
-#diretório com mirror do CifraClub.com.br
-#path = r"D:\Partituras\wget\bin\t2"
-#path = r"C:\fernando\2018\python\CIFRACLUB\treinar\angra"
+#diretório com as sequências de acordes
 
-path = r"C:\Users\fraub\Desktop\dataset_cifraclub_parcial\13_01_socifraclub.com.br"
+path = r"C:\Users\fraub\Desktop\dataset_cifraclub_parcial\"
 
 os.chdir(path)
 
@@ -1048,7 +1041,6 @@ for file_path in Path(path).glob('**/*.txt'):
     arquivo = str(file_path)
     
     with codecs.open(arquivo, "r", encoding="utf8", errors="ignore") as f:    
-        #print(arquivo)        
         cifra = f.read() 
         cifra = LimpaCifraClub(cifra)
         cifra = UniformizaCifra(cifra)
