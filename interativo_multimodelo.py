@@ -1,8 +1,8 @@
 # -------------------------------------------------------------------------------- #
-# harmonia v1.0 - Fernando Rauber --> fernandorauber.com.br/hia
+# harmonia v1.1 - Fernando Rauber --> fernandorauber.com.br/hia
 # Licença: MIT
 
-print ("[ HarmonIA v1.0 ]\n")
+print ("[ harmonIA v1.1 ]\n")
 print ("Carregando TensorFlow ...") # pq tão lento, Google?
 import numpy as np
 import os
@@ -188,7 +188,7 @@ class Model():
                 feed = {self.input_data: x, self.initial_state:state}
                 [probs, state] = sess.run([self.probs, self.final_state], feed)
                                     
-                # print("Modelo #" + str(self.num_id) + " --> " + str(savedir) )
+                print("Modelo #" + str(self.num_id) + " --> " + str(savedir) )
                  
                 idx = 0
                 MatrizProb = [[0 for x in range(2)] for y in range(len(words))]  
@@ -232,7 +232,7 @@ class Model():
                         acorde = Escolha  # acorde escolhido
                         ret += " " + acorde  # conta        # retorno para formação de arquivo .txt (pré-formatação)
                         progressao += " " + acorde   # label para display no GUI                
-            # print("modelo fechando #" + str(self.num_id) )
+            print("modelo fechando #" + str(self.num_id) )
         return ret        
 
 class ModeloEvent(wx.PyCommandEvent):    # enviado ao término do processo
@@ -266,18 +266,19 @@ class AcordeDialog(wx.Dialog):
     
     def onChar(self, event): 
         key = event.GetKeyCode()   
+        print(key)
         if self.PermitirEspaco: # para criação de nova sequência
             if (self.input.GetValue().count(' ')) < 6:  # max 6 acordes
-                acceptable_characters = "12345679()abcdefgABCDEFG#+-mMo/i " + "\b"
+                acceptable_characters = "12345679()abcdefgABCDEFG#+-mMo/isu " + "\b"
             else:
                 acceptable_characters = "\b"
         else:
-            acceptable_characters = "12345679()abcdefgABCDEFG#+-mMo/i" + "\b"
+            acceptable_characters = "12345679()abcdefgABCDEFG#+-mMo/isu" + "\b"
             
         if chr(key) in acceptable_characters:        
             event.Skip() 
             return
-        elif key == 314 or key == 316 or key == 127 or key == 313 or key == 312:    # setas, home, end, delete
+        elif key == 314 or key == 316 or key == 127 or key == 313 or key == 312 or key == 22:    # setas, home, end, delete , 22 = control+V
             event.Skip()
             return
         else:             
@@ -846,7 +847,7 @@ class Panel1(wx.Panel):
 
     def MostrarAjuda(self,event):
         if not wx.IsBusy():            
-            msg = wx.MessageDialog(self, "harmonIA v1.0 - Ajuda rápida: \n\n- Clique nos acordes para montar sua progressão. Botões maiores representam as probabilidades de continuação mais comuns no modelo escolhido.\n\n- Os botões + e - aumentam ou diminuem o número de acordes mostrados.\n\n- Clique na partitura para alterar a posição do acorde ou na cifra para alterar a harmonia escolhida.\n\n- O botão direito do mouse alterna entre o modo de escolha ou escuta do acorde.\n\nUtilize a lista no canto inferior direito para alternar o modelo de geração (tonalidade, estilo ou artista)\n\n- O modo multimodelo permite a utilização simultânea dois modelos\n\nPara informações e progressões mais comuns do modelo, clique no botão 'i'\n\nSalve sua criação em formato .txt (cifra pura) ou MusicXML (partitura) \n\nVisite http://fernandorauber.com.br para mais informações e atualizações.", "harmonIA v1.0 por Fernando Rauber", wx.OK)
+            msg = wx.MessageDialog(self, "harmonIA v1.1 - Ajuda rápida: \n\n- Clique nos acordes para montar sua progressão. Botões maiores representam as probabilidades de continuação mais comuns no modelo escolhido.\n\n- Os botões + e - aumentam ou diminuem o número de acordes mostrados.\n\n- Clique na partitura para alterar a posição do acorde ou na cifra para alterar a harmonia escolhida.\n\n- O botão direito do mouse alterna entre o modo de escolha ou escuta do acorde.\n\nUtilize a lista no canto inferior direito para alternar o modelo de geração (tonalidade, estilo ou artista)\n\n- O modo multimodelo permite a utilização simultânea dois modelos\n\nPara informações e progressões mais comuns do modelo, clique no botão 'i'\n\nSalve sua criação em formato .txt (cifra pura) ou MusicXML (partitura) \n\nVisite http://fernandorauber.com.br para mais informações e atualizações.", "harmonIA v1.1 por Fernando Rauber", wx.OK)
             msg.ShowModal()
             
     def OnModelo(self, event):                
@@ -1167,7 +1168,7 @@ class Panel1(wx.Panel):
                 
                 # mostra msg inicial na primeira vez que a interface for desenhada        
         if self.ajudaInicial:            
-            msg = wx.MessageDialog(self, "harmonIA v1.0\n\n- Bem-vindo! Clique no botão '?' no canto inferior esquerdo para obter ajuda.", "harmonIA v1.0 por Fernando Rauber", wx.OK)
+            msg = wx.MessageDialog(self, "harmonIA v1.1\n\n- Bem-vindo! Clique no botão '?' no canto inferior esquerdo para obter ajuda.", "harmonIA v1.1 por Fernando Rauber", wx.OK)
             msg.ShowModal()
             self.ajudaInicial = False
 
@@ -1242,7 +1243,7 @@ class Panel1(wx.Panel):
                 path = dlg.GetPath()                  
                 with open(path, 'w') as f:
                     contador=0
-                    f.write("O Sucesso do Momento (por harmonIA v1.0)\n----------------------------------------\n\n") 
+                    f.write("O Sucesso do Momento (por harmonIA v1.1)\n----------------------------------------\n\n") 
                     for acorde in str(self.LabelProgressao.GetLabel() ).split():
                         contador+=1                        
                         espaco = 18 - len(acorde)
@@ -1276,7 +1277,7 @@ class Panel1(wx.Panel):
                 
                 # cria partitura
                                 
-                score = mxml.Score(title="O sucesso do momento", composer="harmonIA v1.0\n(e um humano atrapalhando)")
+                score = mxml.Score(title="O sucesso do momento", composer="harmonIA v1.1\n(e um humano atrapalhando)")
                 part = mxml.Part("Guitar")
                 score.append(part)
 
@@ -1344,7 +1345,8 @@ class Panel1(wx.Panel):
         bmp = wx.Bitmap(resized, wx.BITMAP_TYPE_ANY)        
         return bmp
 
-    def MudarModelo(self,event):        
+    def MudarModelo(self,event):   
+        print("Mudar Moodelo -> " + self.SaveDir)
         self.SaveDir = self.model_dir + self.modelos[self.modelo.GetSelection()]        
         self.nome_modelo.SetLabel(self.modelos[self.modelo.GetSelection()])
         self.TrocarModelo = True
@@ -1442,10 +1444,10 @@ class Panel1(wx.Panel):
         self.Calculando.SetBackgroundColour((0,0,255)) # set text back color
         self.Calculando.Hide()
         self.Busy(self)
-        self.SaveDir = 'modelos\\tonalidade\\f'
-        self.SaveDir2 = 'modelos\\tonalidade\\f'
+        self.SaveDir = 'modelos\\tonalidade\\12tons'
+        self.SaveDir2 = 'modelos\\tonalidade\\12tons'
         
-        self.Prime = "C7M "  # feed inicial para rede neural
+        self.Prime = "C7M Dm7 G7"  # feed inicial para rede neural
                 
         # Cria botões
         for i in range(0,80): # Botões para escolha de acordes (Modelo #1)
@@ -1666,8 +1668,14 @@ class Panel1(wx.Panel):
         self.LabelProgressao.Hide()
         self.NumAcordes = 1        
         self.NumAcordesPrev = 1
+        
+        # TODO: verificar SE 12 TONS EXISTE, caso não rodar isso e mudar
+        # self.modelo selection        
         self.SaveDir = self.model_dir + self.modelos[self.modelo.GetSelection()]
+        
+        
         self.ajudaInicial = True
+
         
         self.txt1.SetBackgroundColour((255,255,255))        
         
@@ -1707,7 +1715,7 @@ def main():
     frame1 = wx.Frame(None, -1, "" + "harmonIA", style = FRAMESTYLE)    
     panel1 = Panel1(frame1, -1)
     panel1.SetDoubleBuffered(True)
-    frame1.SetTitle('harmonIA v1.0')     
+    frame1.SetTitle('harmonIA v1.1')     
     frame1.ShowFullScreen(True)
     app.MainLoop()    
     
