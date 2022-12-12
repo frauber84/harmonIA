@@ -2,15 +2,17 @@ Este diretório contém diversos utilitários para o treinamento dos modelos e c
 
 dataset_cifraclub2020.py - compila datasets a partir dos arquivos .HTML baixados do CifraClub
 
-cifras_helper_batch.py - limpa os dados brutos e uniformiza as cifras
+cifras_helper_batch.py - limpa os dados brutos e uniformiza as cifras em todos 
 
-compila_acordes2020.py - cria dicionário de acordes (dic_acordes.py)
+compila_acordes2020.py - cria dicionário de acordes (dic_acordes.py) e posições MIDI
 
-train.py - treina modelos
+train.py - treina modelos (acionado por batch_train_2021.py)
 
-batch_train_2021.py - aciona train.py e organiza informações sobre o modelo
+batch_train_2021.py - aciona train.py e organiza informações sobre todos os modelos treinados
 
 expande_e_normaliza_batch.py - expansão (para 12 tons) e normalização (para dó maior) dos dados brutos
+
+normaliza_dataset.py - normalização (transpõe para dó maior) dos dados brutos
 
 Datasets brutos para treinamento estão disponíveis em:
 
